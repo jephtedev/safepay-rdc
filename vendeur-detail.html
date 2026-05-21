@@ -90,9 +90,11 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:5000/api";
-        // Récupère la transaction sélectionnée sur le dashboard, ou prend TRX1258 par défaut
-        let transactionId = localStorage.getItem("currentTransactionId") || "TRX1258"; 
+        // CORRECTION DE L'URL : Pointage sur ton serveur de production sur Render
+        const API_URL = "https://safepay-rdc-1.onrender.com/api";
+        
+        // Récupère la transaction sélectionnée (ID Mongo ou simulation) ou prend la valeur par défaut
+        let transactionId = localStorage.getItem("currentTransactionId") || "664c1234e5678901234567f2"; 
 
         const otpInput = document.getElementById('otp-input');
         const otpBoxes = [
@@ -102,49 +104,56 @@
             document.getElementById('digit-3')
         ];
 
-        // 1. Récupérer les informations de la transaction depuis l'API
+        // 1. Récupérer les informations de la transaction depuis l'API Render
         async function chargerDetailsTransaction() {
             try {
-                // On récupère toutes les transactions pour chercher la nôtre
                 const response = await fetch(`${API_URL}/transactions`);
-                const resultat = await response.json();
+                const transactions = await response.json(); // Reçoit directement le tableau
 
-                if (resultat.success) {
-                    const tx = resultat.data.find(t => t.id === transactionId);
+                // Recherche la transaction par ID MongoDB (_id) ou ID simulé (id)
+                const tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
 
-                    if (tx) {
-                        // Injection des valeurs dynamiques dans l'UI
-                        document.getElementById("num-commande").innerText = `COMMANDE #${tx.numeroCommande}`;
-                        document.getElementById("nom-produit").innerText = tx.produit;
-                        document.getElementById("nom-acheteur").innerText = `Acheteur : ${tx.client}`;
-                        document.getElementById("montant-produit").innerText = `${tx.montant} $`;
+                if (tx) {
+                    // Injection des données dynamiques
+                    document.getElementById("num-commande").innerText = `COMMANDE #${tx.numeroCommande || '1258'}`;
+                    document.getElementById("nom-produit").innerText = tx.produit;
+                    document.getElementById("nom-acheteur").innerText = `Acheteur : ${tx.acheteur || 'Jean'}`;
+                    document.getElementById("montant-produit").innerText = `${tx.montant} $`;
 
-                        // Icône dynamique sommaire
-                        if (tx.produit.toLowerCase().includes("casque")) {
-                            document.getElementById("produit-icone").innerText = "🎧";
-                        } else if (tx.produit.toLowerCase().includes("montre")) {
-                            document.getElementById("produit-icone").innerText = "⌚";
-                        }
-
-                        // Mise à jour du QR Code pour contenir l'ID de validation
-                        document.getElementById("qr-code-image").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=safepay-${tx.id}-valide`;
-
-                        // Gestion visuelle si la commande est déjà validée
-                        const badgeContainer = document.getElementById("statut-container");
-                        const badge = document.getElementById("statut-badge");
-                        
-                        if (tx.statut !== "En attente") {
-                            badgeContainer.classList.remove("hidden");
-                            badge.innerText = tx.statut === "Validé" ? "LIVRAISON VALIDÉE (FONDS LIBÉRÉS)" : "TRANSACTION EN LITIGE";
-                            badge.className = tx.statut === "Validé" ? "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700" : "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
-                            
-                            // Désactiver la saisie du code si ce n'est plus en attente
-                            otpInput.disabled = true;
-                        }
+                    // Gestion des icônes
+                    if (tx.produit.toLowerCase().includes("casque")) {
+                        document.getElementById("produit-icone").innerText = "🎧";
+                    } else if (tx.produit.toLowerCase().includes("montre")) {
+                        document.getElementById("produit-icone").innerText = "⌚";
                     }
+
+                    // Génération dynamique du QR Code de validation
+                    const targetId = tx._id || tx.id;
+                    document.getElementById("qr-code-image").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=safepay-${targetId}-valide`;
+
+                    // Gestion des états des badges de statut
+                    const badgeContainer = document.getElementById("statut-container");
+                    const badge = document.getElementById("statut-badge");
+                    
+                    if (tx.statut && tx.statut.toLowerCase() !== "en attente") {
+                        badgeContainer.classList.remove("hidden");
+                        
+                        if (tx.statut.toLowerCase() === "validé" || tx.statut.toLowerCase() === "ok") {
+                            badge.innerText = "LIVRAISON VALIDÉE (FONDS LIBÉRÉS)";
+                            badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700";
+                        } else {
+                            badge.innerText = "TRANSACTION EN LITIGE";
+                            badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
+                        }
+                        
+                        otpInput.disabled = true;
+                    }
+                } else {
+                    document.getElementById("num-commande").innerText = "TRANSACTION INTROUVABLE";
                 }
             } catch (error) {
                 console.error("Erreur de chargement des détails :", error);
+                document.getElementById("num-commande").innerText = "ERREUR DE SYNCHRONISATION NETWORK";
             }
         }
 
@@ -157,7 +166,6 @@
             const valeur = e.target.value;
             document.getElementById("msg-erreur").classList.add("hidden");
 
-            // Remplir les cases visuelles
             for (let i = 0; i < 4; i++) {
                 if (valeur[i]) {
                     otpBoxes[i].innerText = valeur[i];
@@ -168,13 +176,12 @@
                 }
             }
 
-            // Si 4 chiffres saisis, exécuter automatiquement la validation
             if (valeur.length === 4) {
                 validerLivraison(valeur);
             }
         });
 
-        // 3. Envoyer la demande de déblocage au serveur Node.js
+        // 3. Envoyer la demande de déblocage au serveur Node.js (Render)
         async function validerLivraison(codeOtp) {
             try {
                 const response = await fetch(`${API_URL}/transactions/debloquer`, {
@@ -190,14 +197,13 @@
 
                 if (resultat.success) {
                     alert("🔓 " + resultat.message);
-                    window.location.href = "vendeur.html"; // Redirection automatique vers le tableau de bord mis à jour
+                    window.location.href = "vendeur.html"; // Redirection automatique vers le dashboard mis à jour
                 } else {
-                    // Afficher le message d'erreur si le code est faux
                     const msgErreur = document.getElementById("msg-erreur");
                     msgErreur.innerText = resultat.message;
                     msgErreur.classList.remove("hidden");
                     
-                    // Réinitialiser la saisie
+                    // Réinitialisation de la saisie
                     otpInput.value = "";
                     otpBoxes.forEach(box => {
                         box.innerText = "-";
@@ -206,13 +212,13 @@
                 }
             } catch (error) {
                 console.error("Erreur lors de la validation :", error);
-                alert("Erreur de connexion avec le serveur.");
+                alert("Erreur de communication avec le serveur principal.");
             }
         }
 
-        // Charger les données de la transaction au chargement de la page
+        // Démarrage de la synchronisation au chargement de l'écran
         document.addEventListener("DOMContentLoaded", chargerDetailsTransaction);
     </script>
 </body>
-                            </html>
-                        
+    </html>
+                    
