@@ -9,27 +9,25 @@ app.use(cors());
 // Permet à l'API de lire les données envoyées au format JSON
 app.use(express.json());
 
-// Port dynamique pour s'adapter automatiquement à l'hébergement (Render, Heroku, etc.)
+// Port dynamique pour s'adapter automatiquement à l'hébergement (Render, etc.)
 const PORT = process.env.PORT || 5000;
 
 // --- BASE DE DONNÉES TEMPORAIRE (Simulation) ---
 
-// 1. Profil du vendeur TechStore (lié à ta maquette)
 let vendors = {
     "TechStore": {
         name: "TechStore",
-        availableBalance: 1250, // Le solde disponible pour retrait affiché sur ton écran (1250 $)
-        phoneNumber: "+243812345678", // Numéro lié pour recevoir les retraits
+        availableBalance: 1250, 
+        phoneNumber: "+243812345678", 
         network: "M-Pesa"
     }
 };
 
-// 2. Historique des transactions (Séquestre)
 let transactions = [
     {
-        id: "TRX1257",
+        _id: "664c1234e5678901234567f1", // Simule un ID MongoDB pour ton admin.html
         numeroCommande: "CMD1257",
-        client: "Marc",
+        acheteur: "Marc", // Harmonisé avec tx.acheteur utilisé dans admin.html
         telephoneClient: "+243891111111",
         adresseLivraison: "Limete, Kinshasa, RDC",
         vendeur: "TechStore",
@@ -37,15 +35,15 @@ let transactions = [
         montant: 85,
         devise: "USD",
         modePaiement: "Orange Money",
-        statut: "Validé", // Déjà livré -> l'argent est déjà inclus dans le solde disponible (1250$)
+        statut: "Validé", 
         otpValidation: "4412",
         createdAt: new Date(),
         libereAt: new Date()
     },
     {
-        id: "TRX1258",
+        _id: "664c1234e5678901234567f2", // Simule un ID MongoDB
         numeroCommande: "CMD1258",
-        client: "Jean",
+        acheteur: "Jean", // Harmonisé avec tx.acheteur utilisé dans admin.html
         telephoneClient: "+243812345678",
         adresseLivraison: "Avenue de la Paix, Gombe, Kinshasa, RDC",
         vendeur: "TechStore",
@@ -53,7 +51,7 @@ let transactions = [
         montant: 120,
         devise: "USD",
         modePaiement: "M-Pesa",
-        statut: "En attente", // "En attente de validation" sur ta maquette -> argent bloqué
+        statut: "En attente", 
         otpValidation: "5821",
         createdAt: new Date()
     }
@@ -66,7 +64,14 @@ app.get('/', (req, res) => {
     res.send('🔒 Serveur SafePay RDC actif et hautement sécurisé.');
 });
 
-// 2. Récupérer les données dynamiques du tableau de bord d'un vendeur (Pour alimenter ta maquette)
+// 2. CORRECTION CRITIQUE : Route globale demandée par admin.html
+app.get('/api/transactions', (req, res) => {
+    // Renvoie directement le tableau des transactions inversé (plus récentes d'abord)
+    // pour correspondre au code : const transactions = await response.json();
+    res.status(200).json(transactions.slice().reverse());
+});
+
+// 3. Récupérer les données dynamiques du tableau de bord d'un vendeur
 app.get('/api/vendor/:name/dashboard', (req, res) => {
     const vendorName = req.params.name;
     const vendor = vendors[vendorName];
@@ -75,10 +80,8 @@ app.get('/api/vendor/:name/dashboard', (req, res) => {
         return res.status(404).json({ success: false, message: "Vendeur introuvable." });
     }
 
-    // Filtrer les transactions spécifiques à ce vendeur
     const vendorTx = transactions.filter(t => t.vendeur === vendorName);
 
-    // Calculer les compteurs dynamiques pour les blocs de ta maquette
     const totalOrders = vendorTx.length;
     const pendingOrders = vendorTx.filter(t => t.statut === "En attente").length;
     const completedOrders = vendorTx.filter(t => t.statut === "Validé").length;
@@ -89,16 +92,16 @@ app.get('/api/vendor/:name/dashboard', (req, res) => {
             vendeur: vendor.name,
             soldeDisponible: vendor.availableBalance,
             statistiques: {
-                total: totalOrders,      // Correspond à "COMMANDES"
-                enCours: pendingOrders,  // Correspond à "EN COURS" (ex: 5)
-                terminees: completedOrders // Correspond à "TERMINÉES" (ex: 27)
+                total: totalOrders,      
+                enCours: pendingOrders,  
+                terminees: completedOrders 
             },
-            commandesRecentes: vendorTx.reverse() // Les plus récentes en premier
+            commandesRecentes: vendorTx.reverse()
         }
     });
 });
 
-// 3. Étape d'Achat : Bloquer l'argent dans le système (Séquestre)
+// 4. Étape d'Achat : Bloquer l'argent dans le système (Séquestre)
 app.post('/api/transactions/bloquer', (req, res) => {
     const { client, telephoneClient, adresseLivraison, vendeur, produit, montant, modePaiement } = req.body;
 
@@ -109,15 +112,18 @@ app.post('/api/transactions/bloquer', (req, res) => {
         });
     }
 
+    // Crée un id de type MongoDB héxadécimal pour éviter les bugs d'affichage
+    const fakeMongoId = require('crypto').randomBytes(12).toString('hex');
+
     const nouvelleTransaction = {
-        id: `TRX${Math.floor(1000 + Math.random() * 9000)}`, 
+        _id: fakeMongoId, 
         numeroCommande: `CMD${Math.floor(1000 + Math.random() * 9000)}`,
-        client,
+        acheteur: client,
         telephoneClient: telephoneClient || "+243000000000",
         adresseLivraison: adresseLivraison || "Kinshasa, RDC",
         vendeur,
         produit,
-        montant,
+        montant: parseInt(montant),
         devise: "USD",
         modePaiement: modePaiement || "M-Pesa",
         statut: "En attente",
@@ -134,10 +140,11 @@ app.post('/api/transactions/bloquer', (req, res) => {
     });
 });
 
-// 4. Étape de Validation : Débloquer l'argent et l'ajouter au solde disponible du vendeur
+// 5. Étape de Validation : Débloquer l'argent via OTP
 app.post('/api/transactions/debloquer', (req, res) => {
     const { transactionId, otp } = req.body;
-    const tx = transactions.find(t => t.id === transactionId);
+    // Vérifie à la fois sur _id ou id pour éviter les conflits frontend
+    const tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
 
     if (!tx) {
         return res.status(404).json({ success: false, message: "Transaction introuvable." });
@@ -157,11 +164,9 @@ app.post('/api/transactions/debloquer', (req, res) => {
         });
     }
 
-    // Le code OTP est correct : On valide la transaction
     tx.statut = "Validé";
     tx.libereAt = new Date();
 
-    // CRITICAL : On crédite immédiatement le solde disponible du vendeur
     if (vendors[tx.vendeur]) {
         vendors[tx.vendeur].availableBalance += tx.montant;
     }
@@ -173,7 +178,7 @@ app.post('/api/transactions/debloquer', (req, res) => {
     });
 });
 
-// 5. Action du bouton "Retirer l'argent" (Payout B2C vers Mobile Money)
+// 6. Action du bouton "Retirer l'argent"
 app.post('/api/vendor/retrait', (req, res) => {
     const { vendeurName, montant } = req.body;
     const vendor = vendors[vendeurName];
@@ -186,10 +191,7 @@ app.post('/api/vendor/retrait', (req, res) => {
         return res.status(400).json({ success: false, message: "Solde disponible insuffisant pour ce retrait." });
     }
 
-    // Déduction du solde disponible du vendeur
     vendor.availableBalance -= montant;
-
-    // --- ICI TU INTEGRERAS L'API PAYOUT (FlexPay, Flutterwave ou MaxiCash) ---
     console.log(`[PAYOUT] Envoi de ${montant}$ vers le numéro ${vendor.phoneNumber} (${vendor.network})`);
 
     res.status(200).json({
@@ -199,10 +201,10 @@ app.post('/api/vendor/retrait', (req, res) => {
     });
 });
 
-// 6. Gestion des litiges
+// 7. Gestion des litiges
 app.post('/api/transactions/litige', (req, res) => {
     const { transactionId } = req.body;
-    const tx = transactions.find(t => t.id === transactionId);
+    const tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
 
     if (!tx) return res.status(404).json({ success: false, message: "Transaction introuvable." });
 
@@ -219,4 +221,4 @@ app.post('/api/transactions/litige', (req, res) => {
 app.listen(PORT, () => {
     console.log(`[SafePay RDC] Serveur démarré avec succès sur le port ${PORT}`);
 });
-        
+            
