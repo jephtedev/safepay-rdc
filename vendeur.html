@@ -1,5 +1,3 @@
-
-              
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -96,10 +94,11 @@
     </div>
 
     <script>
-        const API_URL = "http://localhost:5000/api";
+        // URL pointant directement sur ton serveur en ligne Render
+        const API_URL = "https://safepay-rdc-api.onrender.com/api";
         const NOM_VENDEUR = "TechStore"; // Nom du profil connecté
 
-        // 1. Charger les infos du dashboard depuis le serveur Node.js
+        // 1. Charger les infos du dashboard depuis le serveur Render
         async function chargerDashboard() {
             try {
                 const response = await fetch(`${API_URL}/vendor/${NOM_VENDEUR}/dashboard`);
@@ -128,7 +127,7 @@
                         if (tx.statut === "Validé") {
                             badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-100";
                             statutLabel = "Livré";
-                            opacite = "opacity-60"; // Garde le style estompé de ta maquette pour les livraisons terminées
+                            opacite = "opacity-60"; // Style estompé pour les livraisons terminées
                         } else if (tx.statut === "En litige") {
                             badgeStyle = "bg-red-50 text-red-700 border-red-100";
                             statutLabel = "En litige";
@@ -227,5 +226,5 @@
         });
     </script>
 </body>
-    </html>
-                    
+  </html>
+  
