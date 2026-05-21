@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePay RDC - Paiement Sécurisé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        safepayPurple: '#4F46E5',
+                        safepayDark: '#1E1B4B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white min-h-[840px] shadow-2xl rounded-[40px] overflow-hidden border-[8px] border-slate-800 flex flex-col relative">
+        
+        <div class="px-6 pt-3 pb-2 flex justify-between items-center text-xs font-bold text-slate-700 bg-white">
+            <span>14:36</span>
+            <div class="flex gap-1 items-center"><span>📶</span><span>🔋</span></div>
+        </div>
+
+        <div class="px-6 py-4 flex items-center border-b border-slate-50">
+            <a href="index.html" class="text-xl text-slate-800 font-bold mr-4">←</a>
+            <h1 class="text-lg font-extrabold text-slate-900">Paiement sécurisé</h1>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto pb-24">
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Détails de la commande</p>
+                <div class="flex items-center mt-3">
+                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">🎧</div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="font-bold text-slate-800 text-sm">Casque Bluetooth</h3>
+                        <p class="text-xs text-slate-400">Vendeur : TechStore</p>
+                    </div>
+                    <span class="font-black text-slate-900 text-base">120 $</span>
+                </div>
+            </div>
+
+            <h2 class="font-extrabold text-slate-900 text-sm mt-6 mb-3">Choisissez votre moyen de paiement</h2>
+            
+            <div class="space-y-3">
+                <label class="flex items-center justify-between p-4 bg-white border-2 border-safepayPurple rounded-2xl cursor-pointer shadow-sm">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-red-100 text-red-600 font-black flex items-center justify-center rounded-xl text-xs">M</div>
+                        <span class="ml-3 font-bold text-slate-800 text-sm">M-Pesa</span>
+                    </div>
+                    <input type="radio" name="operator" value="M-Pesa" checked class="w-4 h-4 text-safepayPurple">
+                </label>
+
+                <label class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl cursor-pointer shadow-sm hover:border-slate-300">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-red-600 text-white font-black flex items-center justify-center rounded-xl text-xs">airtel</div>
+                        <span class="ml-3 font-bold text-slate-800 text-sm">Airtel Money</span>
+                    </div>
+                    <input type="radio" name="operator" value="Airtel" class="w-4 h-4 text-safepayPurple">
+                </label>
+
+                <label class="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-2xl cursor-pointer shadow-sm hover:border-slate-300">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-orange-500 text-white font-black flex items-center justify-center rounded-xl text-xs">O</div>
+                        <span class="ml-3 font-bold text-slate-800 text-sm">Orange Money</span>
+                    </div>
+                    <input type="radio" name="operator" value="Orange" class="w-4 h-4 text-safepayPurple">
+                </label>
+            </div>
+
+            <div class="mt-6">
+                <label class="block text-xs font-bold text-slate-500 mb-2">Numéro de téléphone pour le débit</label>
+                <input type="tel" id="client-phone" placeholder="+243" value="+243812345678" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-sm focus:outline-none focus:border-safepayPurple">
+            </div>
+
+            <div id="status-message" class="mt-4 text-center text-sm font-semibold hidden"></div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-50">
+            <button onclick="executerPaiement()" id="btn-payer" class="w-full bg-safepayPurple hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-100 transition-all text-sm">
+                Payer 120 $
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        async function executerPaiement() {
+            const btn = document.getElementById('btn-payer');
+            const statusMsg = document.getElementById('status-message');
+            const phone = document.getElementById('client-phone').value;
+            
+            // Changement d'état visuel du bouton
+            btn.disabled = true;
+            btn.innerText = "Sécurisation des fonds en cours...";
+            statusMsg.classList.remove('hidden');
+            statusMsg.className = "mt-4 text-center text-sm font-semibold text-amber-600";
+            statusMsg.innerText = "🔒 Communication avec le séquestre SafePay...";
+
+            try {
+                // Envoi des données en direct à ton serveur Render !
+                const reponse = await fetch('https://safepay-rdc-1.onrender.com/api/transactions/bloquer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client: "Jean",
+                        telephoneClient: phone,
+                        vendeur: "TechStore",
+                        produit: "Casque Bluetooth",
+                        montant: 120,
+                        modePaiement: document.querySelector('input[name="operator"]:checked').value
+                    })
+                });
+
+                const resultat = await reponse.json();
+
+                if (resultat.success) {
+                    statusMsg.className = "mt-4 text-center text-sm font-semibold text-emerald-600";
+                    statusMsg.innerText = "✅ Argent bloqué avec succès ! Redirection...";
+                    
+                    // Après 2 secondes, on passe à l'écran de suivi
+                    setTimeout(() => {
+                        window.location.href = 'suivi.html?id=' + resultat.data.id;
+                    }, 2000);
+                } else {
+                    throw new Error("Échec du blocage");
+                }
+
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerText = "Payer 120 $";
+                statusMsg.className = "mt-4 text-center text-sm font-semibold text-red-600";
+                statusMsg.innerText = "❌ Erreur de connexion avec le serveur.";
+            }
+        }
+    </script>
+</body>
+  </html>
+          
