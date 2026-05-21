@@ -1,3 +1,5 @@
+
+              
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -30,7 +32,7 @@
         <div class="bg-emeraldVendeur p-6 text-white rounded-b-[32px] shadow-md">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-xl font-black tracking-tight">Bonjour, TechStore 🏪</h1>
+                    <h1 id="nom-vendeur" class="text-xl font-black tracking-tight">Bonjour, TechStore 🏪</h1>
                     <p class="text-xs text-emerald-100 mt-0.5">Tableau de bord vendeur</p>
                 </div>
                 <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">🔔</div>
@@ -39,8 +41,8 @@
             <div class="mt-6 bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
                 <p class="text-xs font-medium text-emerald-100 uppercase tracking-wider">Solde disponible</p>
                 <div class="flex justify-between items-center mt-1">
-                    <span class="text-3xl font-black">1 250 $</span>
-                    <button onclick="demanderRetrait()" id="btn-retrait" class="bg-white text-emeraldVendeur font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:bg-emerald-50 transition-all">
+                    <span id="solde-disponible" class="text-3xl font-black">1 250 $</span>
+                    <button id="btn-retrait" class="bg-white text-emeraldVendeur font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:bg-emerald-50 transition-all">
                         Retirer l'argent
                     </button>
                 </div>
@@ -50,15 +52,15 @@
         <div class="px-6 py-4 flex justify-between gap-3 text-center -mt-2">
             <div class="flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <span class="block text-slate-400 text-[10px] font-bold uppercase">Commandes</span>
-                <span class="text-lg font-black text-slate-800">32</span>
+                <span id="total-commandes" class="text-lg font-black text-slate-800">0</span>
             </div>
             <div class="flex-1 bg-amber-50/60 p-3 rounded-xl border border-amber-100/50">
                 <span class="block text-amber-600 text-[10px] font-bold uppercase">En cours</span>
-                <span class="text-lg font-black text-amber-700">5</span>
+                <span id="commandes-en-cours" class="text-lg font-black text-amber-700">0</span>
             </div>
             <div class="flex-1 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100/50">
                 <span class="block text-emerald-600 text-[10px] font-bold uppercase">Terminées</span>
-                <span class="text-lg font-black text-emerald-700">27</span>
+                <span id="commandes-terminees" class="text-lg font-black text-emerald-700">0</span>
             </div>
         </div>
 
@@ -68,40 +70,8 @@
                 <a href="#" class="text-xs font-bold text-emeraldVendeur">Voir tout</a>
             </div>
 
-            <div class="space-y-3">
-                
-                <a href="vendeur-detail.html" class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm hover:shadow-md transition-all block">
-                    <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl">🎧</div>
-                    <div class="ml-4 flex-1">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-mono font-bold text-slate-400">#CMD1258</span>
-                            <span class="font-black text-slate-900 text-sm">120 $</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-xs mt-0.5">Casque Bluetooth</h3>
-                        <div class="mt-2 flex justify-between items-center">
-                            <span class="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">
-                                ● En attente de validation
-                            </span>
-                        </div>
-                    </div>
-                </a>
-
-                <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm opacity-60">
-                    <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl">⌚</div>
-                    <div class="ml-4 flex-1">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-mono font-bold text-slate-400">#CMD1257</span>
-                            <span class="font-black text-slate-900 text-sm">85 $</span>
-                        </div>
-                        <h3 class="font-bold text-slate-800 text-xs mt-0.5">Montre Connectée</h3>
-                        <div class="mt-2">
-                            <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-100">
-                                ● Livré
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
+            <div id="liste-commandes-recentes" class="space-y-3">
+                <p class="text-center text-xs text-slate-400 py-4">Chargement des transactions...</p>
             </div>
         </div>
 
@@ -126,15 +96,136 @@
     </div>
 
     <script>
-        function demanderRetrait() {
+        const API_URL = "http://localhost:5000/api";
+        const NOM_VENDEUR = "TechStore"; // Nom du profil connecté
+
+        // 1. Charger les infos du dashboard depuis le serveur Node.js
+        async function chargerDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/vendor/${NOM_VENDEUR}/dashboard`);
+                const resultat = await response.json();
+
+                if (resultat.success) {
+                    const data = resultat.data;
+
+                    // Remplacement des textes statiques par les données de l'API
+                    document.getElementById("nom-vendeur").innerText = `Bonjour, ${data.vendeur} 🏪`;
+                    document.getElementById("solde-disponible").innerText = `${data.soldeDisponible.toLocaleString()} $`;
+                    
+                    document.getElementById("total-commandes").innerText = data.statistiques.total;
+                    document.getElementById("commandes-en-cours").innerText = data.statistiques.enCours;
+                    document.getElementById("commandes-terminees").innerText = data.statistiques.terminees;
+
+                    // Génération de la liste des commandes récentes
+                    const conteneur = document.getElementById("liste-commandes-recentes");
+                    conteneur.innerHTML = ""; 
+
+                    data.commandesRecentes.forEach(tx => {
+                        let badgeStyle = "bg-amber-50 text-amber-700 border-amber-100";
+                        let statutLabel = "En attente de validation";
+                        let opacite = "";
+
+                        if (tx.statut === "Validé") {
+                            badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                            statutLabel = "Livré";
+                            opacite = "opacity-60"; // Garde le style estompé de ta maquette pour les livraisons terminées
+                        } else if (tx.statut === "En litige") {
+                            badgeStyle = "bg-red-50 text-red-700 border-red-100";
+                            statutLabel = "En litige";
+                        }
+
+                        let icone = "📦";
+                        if (tx.produit.toLowerCase().includes("casque")) icone = "🎧";
+                        if (tx.produit.toLowerCase().includes("montre")) icone = "⌚";
+
+                        const templateHtml = `
+                            <div onclick="voirDetails('${tx.id}')" class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm hover:shadow-md transition-all cursor-pointer block ${opacite}">
+                                <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl">${icone}</div>
+                                <div class="ml-4 flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs font-mono font-bold text-slate-400">#${tx.numeroCommande}</span>
+                                        <span class="font-black text-slate-900 text-sm">${tx.montant} $</span>
+                                    </div>
+                                    <h3 class="font-bold text-slate-800 text-xs mt-0.5">${tx.produit}</h3>
+                                    <div class="mt-2">
+                                        <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${badgeStyle}">
+                                            ● ${statutLabel}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        conteneur.insertAdjacentHTML('beforeend', templateHtml);
+                    });
+                }
+            } catch (error) {
+                console.error("Erreur de récupération du dashboard :", error);
+            }
+        }
+
+        // 2. Transférer l'identifiant pour la page de validation au clic
+        function voirDetails(transactionId) {
+            localStorage.setItem("currentTransactionId", transactionId);
+            window.location.href = "détail-vendeur.html";
+        }
+
+        // 3. Traiter l'action du bouton "Retirer l'argent"
+        async function executerRetrait() {
             const btn = document.getElementById('btn-retrait');
+            const soldeTexte = document.getElementById('solde-disponible').innerText;
+            const soldeActuel = parseFloat(soldeTexte.replace(/[^0-9.-]+/g,""));
+
+            if (soldeActuel <= 0) {
+                alert("Votre solde disponible est insuffisant pour effectuer un retrait.");
+                return;
+            }
+
+            const montantAuteur = prompt(`Entrez le montant à retirer (Solde dispo: ${soldeActuel}$):`, soldeActuel);
+            if (!montantAuteur || isNaN(montantAuteur) || parseFloat(montantAuteur) <= 0 || parseFloat(montantAuteur) > soldeActuel) {
+                alert("Montant invalide.");
+                return;
+            }
+
+            // Changement visuel d'attente
             btn.disabled = true;
             btn.innerText = "Traitement...";
             btn.className = "bg-emerald-100 text-emerald-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed";
-            
-            alert("💸 Votre demande de retrait de 1 250 $ a été transmise au système SafePay RDC vers votre compte Mobile Money enregistré.");
+
+            try {
+                const response = await fetch(`${API_URL}/vendor/retrait`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        vendeurName: NOM_VENDEUR,
+                        montant: parseFloat(montantAuteur)
+                    })
+                });
+
+                const resultat = await response.json();
+
+                if (resultat.success) {
+                    alert("💸 " + resultat.message);
+                } else {
+                    alert("Échec : " + resultat.message);
+                }
+            } catch (error) {
+                console.error("Erreur retrait :", error);
+                alert("Erreur réseau lors de la demande de retrait.");
+            } finally {
+                // Rétablir le style initial du bouton et rafraîchir l'écran
+                btn.disabled = false;
+                btn.innerText = "Retirer l'argent";
+                btn.className = "bg-white text-emeraldVendeur font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:bg-emerald-50 transition-all";
+                chargerDashboard();
+            }
         }
+
+        // Événements d'initialisation
+        document.addEventListener("DOMContentLoaded", () => {
+            chargerDashboard();
+            document.getElementById("btn-retrait").addEventListener("click", executerRetrait);
+        });
     </script>
 </body>
-              </html>
-              
+    </html>
+                    
