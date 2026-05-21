@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePay RDC - Espace Vendeur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emeraldVendeur: '#10B981',
+                        safepayDark: '#1E1B4B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white min-h-[840px] shadow-2xl rounded-[40px] overflow-hidden border-[8px] border-slate-800 flex flex-col relative">
+        
+        <div class="px-6 pt-3 pb-2 flex justify-between items-center text-xs font-bold text-white bg-emeraldVendeur">
+            <span>14:45</span>
+            <div class="flex gap-1 items-center"><span>📶</span><span>🔋</span></div>
+        </div>
+
+        <div class="bg-emeraldVendeur p-6 text-white rounded-b-[32px] shadow-md">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-black tracking-tight">Bonjour, TechStore 🏪</h1>
+                    <p class="text-xs text-emerald-100 mt-0.5">Tableau de bord vendeur</p>
+                </div>
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">🔔</div>
+            </div>
+
+            <div class="mt-6 bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/10">
+                <p class="text-xs font-medium text-emerald-100 uppercase tracking-wider">Solde disponible</p>
+                <div class="flex justify-between items-center mt-1">
+                    <span class="text-3xl font-black">1 250 $</span>
+                    <button onclick="demanderRetrait()" id="btn-retrait" class="bg-white text-emeraldVendeur font-bold text-xs px-4 py-2.5 rounded-xl shadow-sm hover:bg-emerald-50 transition-all">
+                        Retirer l'argent
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 flex justify-between gap-3 text-center -mt-2">
+            <div class="flex-1 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span class="block text-slate-400 text-[10px] font-bold uppercase">Commandes</span>
+                <span class="text-lg font-black text-slate-800">32</span>
+            </div>
+            <div class="flex-1 bg-amber-50/60 p-3 rounded-xl border border-amber-100/50">
+                <span class="block text-amber-600 text-[10px] font-bold uppercase">En cours</span>
+                <span class="text-lg font-black text-amber-700">5</span>
+            </div>
+            <div class="flex-1 bg-emerald-50/60 p-3 rounded-xl border border-emerald-100/50">
+                <span class="block text-emerald-600 text-[10px] font-bold uppercase">Terminées</span>
+                <span class="text-lg font-black text-emerald-700">27</span>
+            </div>
+        </div>
+
+        <div class="px-6 flex-1 overflow-y-auto pb-24">
+            <div class="flex justify-between items-center my-4">
+                <h2 class="font-extrabold text-slate-900 text-sm">Commandes récentes</h2>
+                <a href="#" class="text-xs font-bold text-emeraldVendeur">Voir tout</a>
+            </div>
+
+            <div class="space-y-3">
+                
+                <a href="vendeur-detail.html" class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm hover:shadow-md transition-all block">
+                    <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl">🎧</div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-mono font-bold text-slate-400">#CMD1258</span>
+                            <span class="font-black text-slate-900 text-sm">120 $</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-xs mt-0.5">Casque Bluetooth</h3>
+                        <div class="mt-2 flex justify-between items-center">
+                            <span class="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100">
+                                ● En attente de validation
+                            </span>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm opacity-60">
+                    <div class="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl">⌚</div>
+                    <div class="ml-4 flex-1">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-mono font-bold text-slate-400">#CMD1257</span>
+                            <span class="font-black text-slate-900 text-sm">85 $</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-xs mt-0.5">Montre Connectée</h3>
+                        <div class="mt-2">
+                            <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-100">
+                                ● Livré
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-center text-center">
+            <div class="flex flex-col items-center text-emeraldVendeur cursor-pointer">
+                <span class="text-xl">🏠</span>
+                <span class="text-[10px] font-bold mt-1">Accueil</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">📦</span>
+                <span class="text-[10px] font-medium mt-1">Livraisons</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">📊</span>
+                <span class="text-[10px] font-medium mt-1">Finances</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">⚙️</span>
+                <span class="text-[10px] font-medium mt-1">Profil</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function demanderRetrait() {
+            const btn = document.getElementById('btn-retrait');
+            btn.disabled = true;
+            btn.innerText = "Traitement...";
+            btn.className = "bg-emerald-100 text-emerald-400 font-bold text-xs px-4 py-2.5 rounded-xl cursor-not-allowed";
+            
+            alert("💸 Votre demande de retrait de 1 250 $ a été transmise au système SafePay RDC vers votre compte Mobile Money enregistré.");
+        }
+    </script>
+</body>
+              </html>
+              
