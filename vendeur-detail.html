@@ -36,14 +36,18 @@
             
             <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-left mb-6">
                 <div class="flex items-center">
-                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">🎧</div>
+                    <div id="produit-icone" class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">📦</div>
                     <div class="ml-3 flex-1">
-                        <span class="text-[10px] font-mono text-slate-400">COMMANDE #CMD1258</span>
-                        <h3 class="font-bold text-slate-800 text-sm">Casque Bluetooth</h3>
-                        <p class="text-xs text-slate-400">Acheteur : Jean</p>
+                        <span id="num-commande" class="text-[10px] font-mono text-slate-400">CHARGEMENT...</span>
+                        <h3 id="nom-produit" class="font-bold text-slate-800 text-sm">-</h3>
+                        <p id="nom-acheteur" class="text-xs text-slate-400">Acheteur : -</p>
                     </div>
-                    <span class="font-black text-slate-900 text-base">120 $</span>
+                    <span id="montant-produit" class="font-black text-slate-900 text-base">- $</span>
                 </div>
+            </div>
+
+            <div id="statut-container" class="mb-4 hidden">
+                <span id="statut-badge" class="px-3 py-1 rounded-full text-xs font-bold"></span>
             </div>
 
             <p class="text-sm font-medium text-slate-600 px-4">
@@ -52,7 +56,7 @@
 
             <div class="my-8 flex flex-col items-center justify-center">
                 <div class="p-4 bg-white border-2 border-slate-100 rounded-3xl shadow-md inline-block">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=safepay-cmd1258-valide" alt="QR Code Validation" class="w-44 h-44">
+                    <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=waiting" alt="QR Code Validation" class="w-44 h-44">
                 </div>
                 <span class="text-[11px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Scanner pour valider</span>
             </div>
@@ -65,12 +69,16 @@
 
             <div class="mt-4">
                 <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Code de validation manuel</label>
-                <div class="flex justify-center gap-2">
-                    <span class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800">5</span>
-                    <span class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800">8</span>
-                    <span class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800">2</span>
-                    <span class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800">1</span>
+                
+                <input type="text" id="otp-input" maxlength="4" pattern="\d*" inputmode="numeric" class="absolute opacity-0 w-1 h-1 z-[-1]">
+                
+                <div id="otp-box-container" class="flex justify-center gap-2 cursor-pointer">
+                    <span id="digit-0" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
+                    <span id="digit-1" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
+                    <span id="digit-2" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
+                    <span id="digit-3" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
                 </div>
+                <p id="msg-erreur" class="text-xs text-red-500 font-semibold mt-3 hidden"></p>
             </div>
 
         </div>
@@ -81,6 +89,130 @@
 
     </div>
 
+    <script>
+        const API_URL = "http://localhost:5000/api";
+        // Récupère la transaction sélectionnée sur le dashboard, ou prend TRX1258 par défaut
+        let transactionId = localStorage.getItem("currentTransactionId") || "TRX1258"; 
+
+        const otpInput = document.getElementById('otp-input');
+        const otpBoxes = [
+            document.getElementById('digit-0'),
+            document.getElementById('digit-1'),
+            document.getElementById('digit-2'),
+            document.getElementById('digit-3')
+        ];
+
+        // 1. Récupérer les informations de la transaction depuis l'API
+        async function chargerDetailsTransaction() {
+            try {
+                // On récupère toutes les transactions pour chercher la nôtre
+                const response = await fetch(`${API_URL}/transactions`);
+                const resultat = await response.json();
+
+                if (resultat.success) {
+                    const tx = resultat.data.find(t => t.id === transactionId);
+
+                    if (tx) {
+                        // Injection des valeurs dynamiques dans l'UI
+                        document.getElementById("num-commande").innerText = `COMMANDE #${tx.numeroCommande}`;
+                        document.getElementById("nom-produit").innerText = tx.produit;
+                        document.getElementById("nom-acheteur").innerText = `Acheteur : ${tx.client}`;
+                        document.getElementById("montant-produit").innerText = `${tx.montant} $`;
+
+                        // Icône dynamique sommaire
+                        if (tx.produit.toLowerCase().includes("casque")) {
+                            document.getElementById("produit-icone").innerText = "🎧";
+                        } else if (tx.produit.toLowerCase().includes("montre")) {
+                            document.getElementById("produit-icone").innerText = "⌚";
+                        }
+
+                        // Mise à jour du QR Code pour contenir l'ID de validation
+                        document.getElementById("qr-code-image").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=safepay-${tx.id}-valide`;
+
+                        // Gestion visuelle si la commande est déjà validée
+                        const badgeContainer = document.getElementById("statut-container");
+                        const badge = document.getElementById("statut-badge");
+                        
+                        if (tx.statut !== "En attente") {
+                            badgeContainer.classList.remove("hidden");
+                            badge.innerText = tx.statut === "Validé" ? "LIVRAISON VALIDÉE (FONDS LIBÉRÉS)" : "TRANSACTION EN LITIGE";
+                            badge.className = tx.statut === "Validé" ? "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700" : "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
+                            
+                            // Désactiver la saisie du code si ce n'est plus en attente
+                            otpInput.disabled = true;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Erreur de chargement des détails :", error);
+            }
+        }
+
+        // 2. Gestion de l'interaction visuelle du pavé de validation manuel
+        document.getElementById('otp-box-container').addEventListener('click', () => {
+            if (!otpInput.disabled) otpInput.focus();
+        });
+
+        otpInput.addEventListener('input', (e) => {
+            const valeur = e.target.value;
+            document.getElementById("msg-erreur").classList.add("hidden");
+
+            // Remplir les cases visuelles
+            for (let i = 0; i < 4; i++) {
+                if (valeur[i]) {
+                    otpBoxes[i].innerText = valeur[i];
+                    otpBoxes[i].classList.add("border-emeraldVendeur", "bg-emerald-50");
+                } else {
+                    otpBoxes[i].innerText = "-";
+                    otpBoxes[i].classList.remove("border-emeraldVendeur", "bg-emerald-50");
+                }
+            }
+
+            // Si 4 chiffres saisis, exécuter automatiquement la validation
+            if (valeur.length === 4) {
+                validerLivraison(valeur);
+            }
+        });
+
+        // 3. Envoyer la demande de déblocage au serveur Node.js
+        async function validerLivraison(codeOtp) {
+            try {
+                const response = await fetch(`${API_URL}/transactions/debloquer`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        transactionId: transactionId,
+                        otp: codeOtp
+                    })
+                });
+
+                const resultat = await response.json();
+
+                if (resultat.success) {
+                    alert("🔓 " + resultat.message);
+                    window.location.href = "vendeur.html"; // Redirection automatique vers le tableau de bord mis à jour
+                } else {
+                    // Afficher le message d'erreur si le code est faux
+                    const msgErreur = document.getElementById("msg-erreur");
+                    msgErreur.innerText = resultat.message;
+                    msgErreur.classList.remove("hidden");
+                    
+                    // Réinitialiser la saisie
+                    otpInput.value = "";
+                    otpBoxes.forEach(box => {
+                        box.innerText = "-";
+                        box.classList.remove("border-emeraldVendeur", "bg-emerald-50");
+                    });
+                }
+            } catch (error) {
+                console.error("Erreur lors de la validation :", error);
+                alert("Erreur de connexion avec le serveur.");
+            }
+        }
+
+        // Charger les données de la transaction au chargement de la page
+        document.addEventListener("DOMContentLoaded", chargerDetailsTransaction);
+    </script>
 </body>
-              </html>
-  
+                            </html>
+                        
