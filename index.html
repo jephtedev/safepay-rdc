@@ -20,7 +20,6 @@
         }
     </script>
     <style>
-        /* Masque les scrollbars des iframes pour une esthétique parfaite */
         iframe::-webkit-scrollbar { display: none; }
         iframe { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -31,17 +30,17 @@
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-indigo-500/20">🔒</div>
             <div>
-                <h1 class="text-lg font-black tracking-wide text-white">SafePay RDC — Simulateur Global Tout-en-Un</h1>
-                <p class="text-xs text-slate-400 font-medium">Environnement synchronisé en direct avec votre API Render</p>
+                <h1 class="text-lg font-black tracking-wide text-white">SafePay RDC — Simulateur Global</h1>
+                <p class="text-xs text-slate-400 font-medium">Projet initié par <span class="text-indigo-400 font-bold">Cedrick Tshiyobo</span></p>
             </div>
         </div>
         
         <div class="flex items-center gap-4 text-xs font-semibold">
             <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Mode Synchrone Actif
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Système en Ligne
             </span>
             <button onclick="rafraichirLesEcransSimules()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl transition-all shadow-md">
-                🔄 Actualiser l'écosystème
+                🔄 Actualiser
             </button>
         </div>
     </header>
@@ -49,181 +48,47 @@
     <main class="flex-1 p-6 gap-6 grid grid-cols-1 xl:grid-cols-12 min-h-0">
         
         <div class="xl:col-span-7 flex flex-col md:flex-row justify-center items-center gap-6 bg-[#131622] rounded-3xl p-6 border border-slate-800/60">
-            
             <div class="flex flex-col items-center">
-                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                    <span>📱</span> Interface Acheteur
-                </span>
-                
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-3">📱 Interface Acheteur</span>
                 <div class="w-[350px] h-[740px] bg-white rounded-[44px] shadow-2xl border-[10px] border-slate-800 flex flex-col relative overflow-hidden ring-4 ring-indigo-500/10">
-                    
-                    <div class="px-6 pt-3 pb-2 flex justify-between items-center text-xs font-bold text-slate-700 bg-white z-20 shrink-0">
-                        <span>14:35</span>
-                        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-slate-800 rounded-full"></div>
-                        <div class="flex gap-1 items-center">
-                            <span>📶</span>
-                            <span>🔋</span>
-                        </div>
-                    </div>
-
-                    <div class="px-6 py-3 flex justify-between items-center bg-white z-20 shrink-0">
-                        <button class="text-xl text-slate-800 font-bold">←</button>
-                        <div class="relative">
-                            <span class="text-xl">🔔</span>
-                            <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-                        </div>
-                    </div>
-
-                    <div class="px-6 flex-1 overflow-y-auto pb-24 bg-white text-slate-800">
-                        <div class="mt-2">
-                            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Bonjour, Jean 🧑🏽‍💻</h1>
-                            <p class="text-sm text-slate-500 mt-1">Que souhaitez-vous faire ?</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mt-6">
-                            <a href="paiement.html" class="bg-slate-50 p-4 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-all block">
-                                <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-xl text-safepayPurple">🛒</div>
-                                <p class="mt-4 font-bold text-sm text-slate-800">Nouvelle<br>commande</p>
-                            </a>
-                            <div class="bg-safepayPurple p-4 rounded-2xl shadow-lg shadow-indigo-200 cursor-pointer">
-                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl text-white">📋</div>
-                                <p class="mt-4 font-bold text-sm text-white">Mes<br>commandes</p>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-between items-center mt-8 mb-4">
-                            <h2 class="font-extrabold text-slate-900 text-base">Mes commandes récentes</h2>
-                            <a href="#" class="text-sm font-bold text-safepayPurple">Voir tout</a>
-                        </div>
-
-                        <div id="loading-status" class="text-center py-4 text-sm text-slate-400">Connexion sécurisée à SafePay RDC...</div>
-                        
-                        <a href="suivi.html" id="container-commandes" class="hidden space-y-4 block"></a>
-                    </div>
-
-                    <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-center text-center z-20">
-                        <div class="flex flex-col items-center text-safepayPurple cursor-pointer">
-                            <span class="text-xl">🏠</span>
-                            <span class="text-[10px] font-bold mt-1">Accueil</span>
-                        </div>
-                        <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
-                            <span class="text-xl">🛍️</span>
-                            <span class="text-[10px] font-medium mt-1">Commandes</span>
-                        </div>
-                        <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
-                            <span class="text-xl">💼</span>
-                            <span class="text-[10px] font-medium mt-1">Wallet</span>
-                        </div>
-                        <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
-                            <span class="text-xl">👤</span>
-                            <span class="text-[10px] font-medium mt-1">Profil</span>
-                        </div>
-                    </div>
-
+                    <iframe id="iframe-client" src="client-accueil.html" class="w-full h-full border-0"></iframe>
                 </div>
             </div>
-
             <div class="flex flex-col items-center">
-                <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                    <span>🏪</span> Espace Vendeur
-                </span>
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3">🏪 Espace Vendeur</span>
                 <div class="w-[350px] h-[740px] bg-slate-950 rounded-[44px] p-2.5 border-[10px] border-slate-800 shadow-2xl relative overflow-hidden ring-4 ring-emerald-500/10">
-                    <div class="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-3.5 bg-slate-800 rounded-full z-50"></div>
                     <iframe id="iframe-vendeur-integre" src="vendeur.html" class="w-full h-full rounded-[34px] border-0 bg-white"></iframe>
                 </div>
             </div>
-
         </div>
 
         <div class="xl:col-span-5 flex flex-col bg-[#131622] rounded-3xl p-4 border border-slate-800/60 min-h-[500px]">
-            <span class="text-xs font-bold text-purple-400 uppercase tracking-widest mb-3 px-2 flex items-center gap-1.5">
-                <span>🖥️</span> Panel de Contrôle Général (RDC)
-            </span>
+            <div class="flex items-center gap-4 p-4 border-b border-slate-800 mb-4">
+                <div class="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center font-black text-white text-lg">JM</div>
+                <div>
+                    <h2 class="text-sm font-bold text-white">Jephté MANWANA</h2>
+                    <p class="text-[10px] text-purple-400 font-semibold uppercase tracking-wider">Administrateur Système</p>
+                    <p class="text-[9px] text-slate-500 mt-0.5">Projet pour : Cedrick Tshiyobo</p>
+                </div>
+            </div>
+            
             <div class="flex-1 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex flex-col shadow-2xl">
-                <div class="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-xs">
-                    <div class="flex gap-1.5"><span class="w-2 h-2 bg-red-500/40 rounded-full"></span><span class="w-2 h-2 bg-amber-500/40 rounded-full"></span><span class="w-2 h-2 bg-emerald-500/40 rounded-full"></span></div>
-                    <div class="bg-slate-950 rounded-lg px-3 py-0.5 flex-1 text-[10px] text-slate-500 border border-slate-800/80 tracking-wide font-mono">
-                        https://admin.safepay.rdc/dashboard
-                    </div>
+                <div class="bg-slate-900 px-4 py-2 flex items-center gap-2 border-b border-slate-800 text-xs text-slate-500">
+                    Panel de Contrôle Global
                 </div>
                 <iframe id="iframe-admin-integre" src="admin.html" class="flex-1 w-full border-0 bg-slate-50"></iframe>
             </div>
         </div>
-
     </main>
 
     <script>
-        const API_URL = "https://safepay-rdc-1.onrender.com/api/transactions";
-
-        async function chargerTransactions() {
-            try {
-                const reponse = await fetch(API_URL);
-                const resultat = await reponse.json();
-                
-                if (resultat.success && resultat.data.length > 0) {
-                    const commande = resultat.data[0];
-                    
-                    document.getElementById('loading-status').classList.add('hidden');
-                    
-                    const container = document.getElementById('container-commandes');
-                    container.classList.remove('hidden');
-                    container.innerHTML = `
-                        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm hover:shadow-md transition-all">
-                            <div class="w-14 h-14 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-2xl">
-                                🎧
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <div class="flex justify-between items-start">
-                                    <h3 class="font-bold text-slate-800 text-sm">${commande.produit}</h3>
-                                    <span class="font-black text-slate-900 text-sm">${commande.montant} ${commande.devise}</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-0.5">Vendeur : ${commande.vendeur}</p>
-                                <div class="mt-3 flex justify-between items-center">
-                                    <span class="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-100">
-                                        ● En attente de livraison
-                                    </span>
-                                    <span class="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
-                                        ${commande.numeroCommande}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm opacity-60">
-                            <div class="w-14 h-14 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-2xl">
-                                ⌚
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <div class="flex justify-between items-start">
-                                    <h3 class="font-bold text-slate-800 text-sm">Montre Connectée</h3>
-                                    <span class="font-black text-slate-900 text-sm">85 $</span>
-                                </div>
-                                <p class="text-xs text-slate-400 mt-0.5">Vendeur : TimeShop</p>
-                                <div class="mt-3">
-                                    <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-100">
-                                        ● Livraison confirmée
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            } catch (erreur) {
-                console.error("Erreur API:", erreur);
-                document.getElementById('loading-status').innerText = "Erreur de chargement des données.";
-            }
-        }
-
-        // Exécution de ta fonction d'origine au chargement
-        chargerTransactions();
-
-        // Fonction d'actualisation globale du simulateur
         function rafraichirLesEcransSimules() {
-            chargerTransactions();
+            // Actualisation forcée de tous les cadres
+            document.getElementById('iframe-client').contentWindow.location.reload();
             document.getElementById('iframe-vendeur-integre').contentWindow.location.reload();
             document.getElementById('iframe-admin-integre').contentWindow.location.reload();
         }
     </script>
 </body>
-                </html>
+        </html>
     
