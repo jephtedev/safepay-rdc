@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePay RDC - Suivi de Commande</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        safepayPurple: '#4F46E5',
+                        safepayDark: '#1E1B4B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white min-h-[840px] shadow-2xl rounded-[40px] overflow-hidden border-[8px] border-slate-800 flex flex-col relative">
+        
+        <div class="px-6 pt-3 pb-2 flex justify-between items-center text-xs font-bold text-slate-700 bg-white">
+            <span>14:41</span>
+            <div class="flex gap-1 items-center"><span>📶</span><span>🔋</span></div>
+        </div>
+
+        <div class="px-6 py-4 flex items-center border-b border-slate-50">
+            <a href="index.html" class="text-xl text-slate-800 font-bold mr-4">←</a>
+            <h1 class="text-lg font-extrabold text-slate-900">Suivi de commande</h1>
+        </div>
+
+        <div class="p-6 flex-1 overflow-y-auto pb-32">
+            
+            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                    <span id="numero-commande" class="text-sm font-mono font-bold text-slate-800">#CMD1258</span>
+                    <p class="text-xs text-slate-400 mt-0.5" id="date-commande">20 Mai 2026 à 14:30</p>
+                </div>
+                <span class="bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-100" id="badge-statut">
+                    En cours
+                </span>
+            </div>
+
+            <div class="mt-8 relative pl-8 border-l-2 border-slate-100 ml-4 space-y-8">
+                
+                <div class="relative">
+                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center"></span>
+                    <h4 class="text-sm font-bold text-slate-800">Commande confirmée</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">L'acheteur a initié la transaction</p>
+                </div>
+
+                <div class="relative">
+                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center"></span>
+                    <h4 class="text-sm font-bold text-slate-800">Paiement sécurisé</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">L'argent de 120 $ est bloqué chez SafePay RDC</p>
+                </div>
+
+                <div class="relative" id="step-livraison">
+                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-amber-500 border-4 border-white shadow-sm flex items-center justify-center animation-pulse"></span>
+                    <h4 class="text-sm font-bold text-slate-800" id="title-livraison">En attente de livraison</h4>
+                    <p class="text-xs text-slate-400 mt-0.5" id="desc-livraison">Le vendeur prépare ou livre votre colis</p>
+                </div>
+
+                <div class="relative opacity-40" id="step-validation">
+                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-slate-300 border-4 border-white shadow-sm flex items-center justify-center"></span>
+                    <h4 class="text-sm font-bold text-slate-800">Livraison confirmée</h4>
+                    <p class="text-xs text-slate-400 mt-0.5">En attente de votre validation par OTP/QR Code</p>
+                </div>
+            </div>
+
+            <div id="status-update-msg" class="mt-8 text-center text-sm font-semibold hidden"></div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-50 flex flex-col gap-2">
+            <p class="text-center text-xs font-medium text-slate-400 px-2 mb-1">
+                Validez la réception uniquement après avoir inspecté le produit au point de livraison.
+            </p>
+            <button onclick="validerReception()" id="btn-valider" class="w-full bg-safepayPurple hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-100 transition-all text-sm">
+                Valider la réception
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Extraction de l'ID de la transaction depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const transactionId = urlParams.get('id') || "1258";
+
+        async function validerReception() {
+            const btn = document.getElementById('btn-valider');
+            const msg = document.getElementById('status-update-msg');
+            
+            btn.disabled = true;
+            btn.innerText = "Validation en cours...";
+            msg.classList.remove('hidden');
+            msg.className = "mt-6 text-center text-sm font-semibold text-amber-600";
+            msg.innerText = "🔄 Déblocage des fonds en cours au niveau du serveur...";
+
+            try {
+                // Requête de mise à jour envoyée à ton API backend sur Render !
+                const reponse = await fetch(`https://safepay-rdc-1.onrender.com/api/transactions/valider/${transactionId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const resultat = await reponse.json();
+
+                if (resultat.success) {
+                    msg.className = "mt-6 text-center text-sm font-semibold text-emerald-600";
+                    msg.innerHTML = "🎉 Réception validée !<br><span class='text-xs text-slate-500'>Les fonds ont été libérés et versés au vendeur.</span>";
+                    
+                    // Mise à jour visuelle instantanée de la timeline
+                    document.getElementById('badge-statut').className = "bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100";
+                    document.getElementById('badge-statut').innerText = "Validée";
+                    
+                    document.getElementById('step-validation').classList.remove('opacity-40');
+                    document.getElementById('step-validation').querySelector('span').className = "absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center";
+                    
+                    btn.className = "w-full bg-slate-100 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm cursor-not-allowed";
+                    btn.innerText = "Transaction Terminée";
+                } else {
+                    throw new Error("Erreur serveur");
+                }
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerText = "Valider la réception";
+                msg.className = "mt-6 text-center text-sm font-semibold text-red-600";
+                msg.innerText = "❌ Impossible de valider la commande. Réessayez.";
+            }
+        }
+    </script>
+</body>
+              </html>
+  
