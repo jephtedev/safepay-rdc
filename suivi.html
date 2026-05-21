@@ -36,11 +36,11 @@
             
             <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <div>
-                    <span id="numero-commande" class="text-sm font-mono font-bold text-slate-800">#CMD1258</span>
-                    <p class="text-xs text-slate-400 mt-0.5" id="date-commande">20 Mai 2026 à 14:30</p>
+                    <span id="numero-commande" class="text-sm font-mono font-bold text-slate-800">#CHARGEMENT...</span>
+                    <p class="text-xs text-slate-400 mt-0.5" id="date-commande">-</p>
                 </div>
                 <span class="bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-100" id="badge-statut">
-                    En cours
+                    En attente
                 </span>
             </div>
 
@@ -49,90 +49,164 @@
                 <div class="relative">
                     <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center"></span>
                     <h4 class="text-sm font-bold text-slate-800">Commande confirmée</h4>
-                    <p class="text-xs text-slate-400 mt-0.5">L'acheteur a initié la transaction</p>
+                    <p class="text-xs text-slate-400 mt-0.5" id="info-acheteur">Acheteur : Chargement...</p>
                 </div>
 
                 <div class="relative">
                     <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center"></span>
                     <h4 class="text-sm font-bold text-slate-800">Paiement sécurisé</h4>
-                    <p class="text-xs text-slate-400 mt-0.5">L'argent de 120 $ est bloqué chez SafePay RDC</p>
+                    <p class="text-xs text-slate-400 mt-0.5" id="info-montant">L'argent est bloqué en séquestre chez SafePay RDC</p>
                 </div>
 
                 <div class="relative" id="step-livraison">
-                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-amber-500 border-4 border-white shadow-sm flex items-center justify-center animation-pulse"></span>
+                    <span id="dot-livraison" class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-amber-500 border-4 border-white shadow-sm flex items-center justify-center"></span>
                     <h4 class="text-sm font-bold text-slate-800" id="title-livraison">En attente de livraison</h4>
                     <p class="text-xs text-slate-400 mt-0.5" id="desc-livraison">Le vendeur prépare ou livre votre colis</p>
                 </div>
 
                 <div class="relative opacity-40" id="step-validation">
-                    <span class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-slate-300 border-4 border-white shadow-sm flex items-center justify-center"></span>
+                    <span id="dot-validation" class="absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-slate-300 border-4 border-white shadow-sm flex items-center justify-center"></span>
                     <h4 class="text-sm font-bold text-slate-800">Livraison confirmée</h4>
-                    <p class="text-xs text-slate-400 mt-0.5">En attente de votre validation par OTP/QR Code</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Fonds libérés après validation ou introduction du code OTP</p>
                 </div>
             </div>
 
-            <div id="status-update-msg" class="mt-8 text-center text-sm font-semibold hidden"></div>
+            <div id="otp-display-container" class="mt-8 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-center">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-indigo-400 block mb-1">Votre Code OTP Secret de validation</span>
+                <span id="otp-code-client" class="text-2xl font-black tracking-widest text-indigo-700 font-mono">----</span>
+                <p class="text-[11px] text-slate-500 mt-1">Donnez ce code au livreur uniquement si le produit est conforme.</p>
+            </div>
+
+            <div id="status-update-msg" class="mt-6 text-center text-sm font-semibold hidden"></div>
         </div>
 
         <div class="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-50 flex flex-col gap-2">
             <p class="text-center text-xs font-medium text-slate-400 px-2 mb-1">
-                Validez la réception uniquement après avoir inspecté le produit au point de livraison.
+                Valisez la réception uniquement après avoir inspecté le produit au point de livraison.
             </p>
-            <button onclick="validerReception()" id="btn-valider" class="w-full bg-safepayPurple hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-100 transition-all text-sm">
-                Valider la réception
+            <button onclick="ouvrirPromptValidation()" id="btn-valider" class="w-full bg-safepayPurple hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-100 transition-all text-sm">
+                Valider la réception (Acheteur)
             </button>
         </div>
 
     </div>
 
     <script>
-        // Extraction de l'ID de la transaction depuis l'URL
+        const API_URL = "https://safepay-rdc-1.onrender.com/api";
+        
+        // Extraction de l'ID de la transaction depuis l'URL ou ID par défaut de l'app de test
         const urlParams = new URLSearchParams(window.location.search);
-        const transactionId = urlParams.get('id') || "1258";
+        const transactionId = urlParams.get('id') || "664c1234e5678901234567f2";
 
-        async function validerReception() {
+        // 1. Charger dynamiquement les détails depuis le serveur Render
+        async function chargerSuiviTransaction() {
+            try {
+                const response = await fetch(`${API_URL}/transactions`);
+                const transactions = await response.json();
+
+                // Chercher notre transaction courante
+                const tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
+
+                if (tx) {
+                    // Injection des données
+                    document.getElementById('numero-commande').innerText = `#${tx.numeroCommande || 'CMD1258'}`;
+                    document.getElementById('info-acheteur').innerText = `L'acheteur (${tx.acheteur || 'Jean'}) a initié la transaction`;
+                    document.getElementById('info-montant').innerText = `L'argent de ${tx.montant}$ ${tx.devise} est bloqué chez SafePay RDC`;
+                    document.getElementById('otp-code-client').innerText = tx.otpValidation || '5821';
+
+                    if (tx.createdAt) {
+                        const dateObj = new Date(tx.createdAt);
+                        document.getElementById('date-commande').innerText = dateObj.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+                    }
+
+                    // Ajustement visuel selon le statut réel provenant du serveur
+                    const badge = document.getElementById('badge-statut');
+                    if (tx.statut.toLowerCase() === 'validé' || tx.statut.toLowerCase() === 'ok') {
+                        badge.className = "bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100";
+                        badge.innerText = "Validée";
+                        
+                        // Passer toute la timeline au vert
+                        document.getElementById('step-validation').classList.remove('opacity-40');
+                        document.getElementById('dot-validation').className = "absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center";
+                        document.getElementById('dot-livraison').className = "absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center";
+                        
+                        // Masquer le pavé OTP et désactiver le bouton
+                        document.getElementById('otp-display-container').classList.add('hidden');
+                        const btn = document.getElementById('btn-valider');
+                        btn.className = "w-full bg-slate-100 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm cursor-not-allowed";
+                        btn.innerText = "Transaction Terminée";
+                        btn.disabled = true;
+                    } else if (tx.statut.toLowerCase() === 'en litige') {
+                        badge.className = "bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100";
+                        badge.innerText = "En litige";
+                        document.getElementById('dot-livraison').className = "absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-rose-500 border-4 border-white shadow-sm flex items-center justify-center";
+                    } else {
+                        // Statut en cours / En attente
+                        badge.className = "bg-amber-50 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-100";
+                        badge.innerText = "En cours";
+                        document.getElementById('dot-livraison').classList.add('animate-pulse');
+                    }
+                }
+            } catch (error) {
+                console.error("Erreur d'actualisation du suivi :", error);
+            }
+        }
+
+        // 2. Ouvrir la demande de validation côté client
+        function ouvrirPromptValidation() {
+            const codeSaisi = prompt("Pour confirmer la réception sans passer par le livreur, veuillez saisir votre code OTP secret à 4 chiffres :");
+            if (codeSaisi) {
+                executerValidationBackend(codeSaisi);
+            }
+        }
+
+        // 3. Communiquer directement avec la route /debloquer du serveur Node.js
+        async function executerValidationBackend(codeOtp) {
             const btn = document.getElementById('btn-valider');
             const msg = document.getElementById('status-update-msg');
             
             btn.disabled = true;
-            btn.innerText = "Validation en cours...";
             msg.classList.remove('hidden');
             msg.className = "mt-6 text-center text-sm font-semibold text-amber-600";
-            msg.innerText = "🔄 Déblocage des fonds en cours au niveau du serveur...";
+            msg.innerText = "🔄 Transmission du code au protocole de séquestre...";
 
             try {
-                // Requête de mise à jour envoyée à ton API backend sur Render !
-                const reponse = await fetch(`https://safepay-rdc-1.onrender.com/api/transactions/valider/${transactionId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' }
+                const reponse = await fetch(`${API_URL}/transactions/debloquer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transactionId: transactionId,
+                        otp: codeOtp
+                    })
                 });
 
                 const resultat = await reponse.json();
 
                 if (resultat.success) {
                     msg.className = "mt-6 text-center text-sm font-semibold text-emerald-600";
-                    msg.innerHTML = "🎉 Réception validée !<br><span class='text-xs text-slate-500'>Les fonds ont été libérés et versés au vendeur.</span>";
+                    msg.innerHTML = "🎉 Réception validée avec succès !<br><span class='text-xs text-slate-500'>Fonds débloqués pour le vendeur.</span>";
                     
-                    // Mise à jour visuelle instantanée de la timeline
-                    document.getElementById('badge-statut').className = "bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100";
-                    document.getElementById('badge-statut').innerText = "Validée";
-                    
-                    document.getElementById('step-validation').classList.remove('opacity-40');
-                    document.getElementById('step-validation').querySelector('span').className = "absolute -left-[41px] top-0 w-5 h-5 rounded-full bg-emerald-500 border-4 border-white shadow-sm flex items-center justify-center";
-                    
-                    btn.className = "w-full bg-slate-100 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm cursor-not-allowed";
-                    btn.innerText = "Transaction Terminée";
+                    // Rechargement immédiat de la structure graphique pour valider les états
+                    chargerSuiviTransaction();
                 } else {
-                    throw new Error("Erreur serveur");
+                    alert("⚠️ Échec : " + resultat.message);
+                    btn.disabled = false;
+                    msg.classList.add('hidden');
                 }
             } catch (error) {
+                alert("Erreur réseau lors de la communication avec l'API SafePay.");
                 btn.disabled = false;
-                btn.innerText = "Valider la réception";
-                msg.className = "mt-6 text-center text-sm font-semibold text-red-600";
-                msg.innerText = "❌ Impossible de valider la commande. Réessayez.";
+                msg.classList.add('hidden');
             }
         }
+
+        // Chargement initial au lancement de l'écran
+        document.addEventListener("DOMContentLoaded", () => {
+            chargerSuiviTransaction();
+            // Rafraîchissement automatique toutes les 5 secondes pour voir si le vendeur valide de son côté
+            setInterval(chargerSuiviTransaction, 5000);
+        });
     </script>
 </body>
-              </html>
-  
+                    </html>
+                        
