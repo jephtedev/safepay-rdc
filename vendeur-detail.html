@@ -29,196 +29,144 @@
 
         <div class="px-6 py-4 flex items-center border-b border-slate-50">
             <a href="vendeur.html" class="text-xl text-slate-800 font-bold mr-4">←</a>
-            <h1 class="text-lg font-extrabold text-slate-900">Validation de livraison</h1>
+            <h1 class="text-lg font-extrabold text-slate-900">Validation Livraison</h1>
         </div>
 
-        <div class="p-6 flex-1 overflow-y-auto pb-24 text-center">
+        <div class="p-6 flex-1 overflow-y-auto pb-32">
             
-            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 text-left mb-6">
-                <div class="flex items-center">
-                    <div id="produit-icone" class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-xl shadow-sm">📦</div>
-                    <div class="ml-3 flex-1">
-                        <span id="num-commande" class="text-[10px] font-mono text-slate-400">CHARGEMENT...</span>
-                        <h3 id="nom-produit" class="font-bold text-slate-800 text-sm">-</h3>
-                        <p id="nom-acheteur" class="text-xs text-slate-400">Acheteur : -</p>
-                    </div>
-                    <span id="montant-produit" class="font-black text-slate-900 text-base">- $</span>
-                </div>
+            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center mb-6">
+                <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block mb-1">Fonds Séquestrés</span>
+                <h2 id="montant-vendeur" class="text-3xl font-black text-slate-900">-- $</h2>
+                <p class="text-xs text-slate-500 mt-1" id="statut-actuel">Statut : Chargement...</p>
             </div>
 
-            <div id="statut-container" class="mb-4 hidden">
-                <span id="statut-badge" class="px-3 py-1 rounded-full text-xs font-bold"></span>
+            <div class="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm">
+                <div class="flex justify-between"><span class="text-slate-400">Commande :</span><span id="cmd-id" class="font-mono font-bold text-slate-800">#---</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Article :</span><span id="txt-produit" class="font-semibold text-slate-800">--</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Acheteur :</span><span id="txt-acheteur" class="font-semibold text-slate-800">--</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Téléphone :</span><span id="txt-phone" class="font-semibold text-slate-800">--</span></div>
             </div>
 
-            <p class="text-sm font-medium text-slate-600 px-4">
-                Demandez à l'acheteur son code secret ou scannez son application pour valider la remise du colis et recevoir vos fonds.
-            </p>
-
-            <div class="my-8 flex flex-col items-center justify-center">
-                <div class="p-4 bg-white border-2 border-slate-100 rounded-3xl shadow-md inline-block">
-                    <img id="qr-code-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=waiting" alt="QR Code Validation" class="w-44 h-44">
-                </div>
-                <span class="text-[11px] font-bold text-slate-400 mt-3 uppercase tracking-wider">Scanner pour valider</span>
+            <div id="otp-area" class="mt-8">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Introduire le Code OTP fourni par l'acheteur</label>
+                <input type="text" id="otp-input" maxlength="4" placeholder="0000" class="w-full text-center tracking-widest text-xl font-black px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emeraldVendeur font-mono">
+                <p class="text-[11px] text-slate-400 mt-1.5 text-center">Ce code confirme la remise en main propre du colis conforme.</p>
             </div>
 
-            <div class="flex items-center my-6">
-                <div class="flex-1 h-px bg-slate-100"></div>
-                <span class="px-3 text-xs font-bold text-slate-400 uppercase">OU</span>
-                <div class="flex-1 h-px bg-slate-100"></div>
-            </div>
-
-            <div class="mt-4">
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Code de validation manuel</label>
-                
-                <input type="text" id="otp-input" maxlength="4" pattern="\d*" inputmode="numeric" class="absolute opacity-0 w-1 h-1 z-[-1]">
-                
-                <div id="otp-box-container" class="flex justify-center gap-2 cursor-pointer">
-                    <span id="digit-0" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
-                    <span id="digit-1" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
-                    <span id="digit-2" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
-                    <span id="digit-3" class="w-12 h-14 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-black text-xl text-slate-800 transition-all duration-200">-</span>
-                </div>
-                <p id="msg-erreur" class="text-xs text-red-500 font-semibold mt-3 hidden"></p>
-            </div>
-
+            <div id="status-update-msg" class="mt-6 text-center text-sm font-semibold hidden"></div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 p-4 bg-slate-50 border-t border-slate-100 text-center text-[11px] font-medium text-slate-400 flex items-center justify-center gap-1">
-            🔒 Sécurisé de bout en bout par SafePay RDC séquestre.
+        <div class="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-50">
+            <button onclick="validerCodeOtp()" id="btn-valider" class="w-full bg-emeraldVendeur hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-100 transition-all text-sm">
+                Confirmer la livraison & encaisser
+            </button>
         </div>
 
     </div>
 
     <script>
-        // CORRECTION DE L'URL : Pointage sur ton serveur de production sur Render
         const API_URL = "https://safepay-rdc-1.onrender.com/api";
         
-        // Récupère la transaction sélectionnée (ID Mongo ou simulation) ou prend la valeur par défaut
-        let transactionId = localStorage.getItem("currentTransactionId") || "664c1234e5678901234567f2"; 
+        // Extraction intelligente de l'ID depuis l'URL ou récupération automatique dans le LocalStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let transactionId = urlParams.get('id') || localStorage.getItem("currentTransactionId");
 
-        const otpInput = document.getElementById('otp-input');
-        const otpBoxes = [
-            document.getElementById('digit-0'),
-            document.getElementById('digit-1'),
-            document.getElementById('digit-2'),
-            document.getElementById('digit-3')
-        ];
-
-        // 1. Récupérer les informations de la transaction depuis l'API Render
-        async function chargerDetailsTransaction() {
+        // Charger les informations de la transaction en temps réel
+        async function chargerDetailsCommande() {
             try {
                 const response = await fetch(`${API_URL}/transactions`);
-                const transactions = await response.json(); // Reçoit directement le tableau
+                const transactions = await response.json();
 
-                // Recherche la transaction par ID MongoDB (_id) ou ID simulé (id)
-                const tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
+                // Si aucun ID n'est trouvé, on prend la dernière transaction du tableau pour le test
+                let tx = null;
+                if (transactionId) {
+                    tx = transactions.find(t => t._id === transactionId || t.id === transactionId);
+                } else if (transactions.length > 0) {
+                    tx = transactions[transactions.length - 1]; 
+                    transactionId = tx._id || tx.id;
+                }
 
                 if (tx) {
-                    // Injection des données dynamiques
-                    document.getElementById("num-commande").innerText = `COMMANDE #${tx.numeroCommande || '1258'}`;
-                    document.getElementById("nom-produit").innerText = tx.produit;
-                    document.getElementById("nom-acheteur").innerText = `Acheteur : ${tx.acheteur || 'Jean'}`;
-                    document.getElementById("montant-produit").innerText = `${tx.montant} $`;
-
-                    // Gestion des icônes
-                    if (tx.produit.toLowerCase().includes("casque")) {
-                        document.getElementById("produit-icone").innerText = "🎧";
-                    } else if (tx.produit.toLowerCase().includes("montre")) {
-                        document.getElementById("produit-icone").innerText = "⌚";
-                    }
-
-                    // Génération dynamique du QR Code de validation
-                    const targetId = tx._id || tx.id;
-                    document.getElementById("qr-code-image").src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=safepay-${targetId}-valide`;
-
-                    // Gestion des états des badges de statut
-                    const badgeContainer = document.getElementById("statut-container");
-                    const badge = document.getElementById("statut-badge");
+                    document.getElementById('montant-vendeur').innerText = `${tx.montant} ${tx.devise || 'USD'}`;
+                    document.getElementById('cmd-id').innerText = `#${tx.numeroCommande || 'CMD1258'}`;
+                    document.getElementById('txt-produit').innerText = tx.produit || 'Casque Bluetooth';
+                    document.getElementById('txt-acheteur').innerText = tx.acheteur || 'Jean';
+                    document.getElementById('txt-phone').innerText = tx.telephoneClient || '-';
                     
-                    if (tx.statut && tx.statut.toLowerCase() !== "en attente") {
-                        badgeContainer.classList.remove("hidden");
+                    const statutLabel = document.getElementById('statut-actuel');
+                    const btn = document.getElementById('btn-valider');
+                    
+                    if (tx.statut.toLowerCase() === 'validé' || tx.statut.toLowerCase() === 'ok') {
+                        statutLabel.innerText = "Statut : 🎉 Payé & Libéré";
+                        statutLabel.className = "text-xs text-emerald-600 font-bold mt-1";
                         
-                        if (tx.statut.toLowerCase() === "validé" || tx.statut.toLowerCase() === "ok") {
-                            badge.innerText = "LIVRAISON VALIDÉE (FONDS LIBÉRÉS)";
-                            badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700";
-                        } else {
-                            badge.innerText = "TRANSACTION EN LITIGE";
-                            badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700";
-                        }
-                        
-                        otpInput.disabled = true;
+                        document.getElementById('otp-area').classList.add('hidden');
+                        btn.className = "w-full bg-slate-100 text-slate-400 font-bold py-3.5 px-4 rounded-xl text-sm cursor-not-allowed";
+                        btn.innerText = "Fonds déjà versés";
+                        btn.disabled = true;
+                    } else {
+                        statutLabel.innerText = `Statut : 🔒 En séquestre (${tx.statut})`;
+                        statutLabel.className = "text-xs text-amber-600 font-bold mt-1";
                     }
-                } else {
-                    document.getElementById("num-commande").innerText = "TRANSACTION INTROUVABLE";
                 }
             } catch (error) {
-                console.error("Erreur de chargement des détails :", error);
-                document.getElementById("num-commande").innerText = "ERREUR DE SYNCHRONISATION NETWORK";
+                console.error("Erreur de chargement du panneau vendeur :", error);
             }
         }
 
-        // 2. Gestion de l'interaction visuelle du pavé de validation manuel
-        document.getElementById('otp-box-container').addEventListener('click', () => {
-            if (!otpInput.disabled) otpInput.focus();
-        });
+        // Valider l'OTP contre l'API backend
+        async function validerCodeOtp() {
+            const codeOtp = document.getElementById('otp-input').value;
+            const btn = document.getElementById('btn-valider');
+            const msg = document.getElementById('status-update-msg');
 
-        otpInput.addEventListener('input', (e) => {
-            const valeur = e.target.value;
-            document.getElementById("msg-erreur").classList.add("hidden");
-
-            for (let i = 0; i < 4; i++) {
-                if (valeur[i]) {
-                    otpBoxes[i].innerText = valeur[i];
-                    otpBoxes[i].classList.add("border-emeraldVendeur", "bg-emerald-50");
-                } else {
-                    otpBoxes[i].innerText = "-";
-                    otpBoxes[i].classList.remove("border-emeraldVendeur", "bg-emerald-50");
-                }
+            if (!codeOtp || codeOtp.length < 4) {
+                alert("Veuillez entrer le code OTP complet à 4 chiffres.");
+                return;
             }
 
-            if (valeur.length === 4) {
-                validerLivraison(valeur);
-            }
-        });
+            btn.disabled = true;
+            msg.classList.remove('hidden');
+            msg.className = "mt-4 text-center text-sm font-semibold text-amber-600";
+            msg.innerText = "⚡ Vérification de la clé de déblocage...";
 
-        // 3. Envoyer la demande de déblocage au serveur Node.js (Render)
-        async function validerLivraison(codeOtp) {
             try {
-                const response = await fetch(`${API_URL}/transactions/debloquer`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                const reponse = await fetch(`${API_URL}/transactions/debloquer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         transactionId: transactionId,
                         otp: codeOtp
                     })
                 });
 
-                const resultat = await response.json();
+                const resultat = await reponse.json();
 
                 if (resultat.success) {
-                    alert("🔓 " + resultat.message);
-                    window.location.href = "vendeur.html"; // Redirection automatique vers le dashboard mis à jour
-                } else {
-                    const msgErreur = document.getElementById("msg-erreur");
-                    msgErreur.innerText = resultat.message;
-                    msgErreur.classList.remove("hidden");
+                    msg.className = "mt-4 text-center text-sm font-semibold text-emerald-600";
+                    msg.innerHTML = "🎉 Succès ! Le paiement a été libéré sur votre compte.";
                     
-                    // Réinitialisation de la saisie
-                    otpInput.value = "";
-                    otpBoxes.forEach(box => {
-                        box.innerText = "-";
-                        box.classList.remove("border-emeraldVendeur", "bg-emerald-50");
-                    });
+                    // Rechargement immédiat de l'interface
+                    chargerDetailsCommande();
+                } else {
+                    alert("⚠️ Code incorrect : " + resultat.message);
+                    btn.disabled = false;
+                    msg.classList.add('hidden');
                 }
             } catch (error) {
-                console.error("Erreur lors de la validation :", error);
-                alert("Erreur de communication avec le serveur principal.");
+                alert("Erreur réseau lors de la validation.");
+                btn.disabled = false;
+                msg.classList.add('hidden');
             }
         }
 
-        // Démarrage de la synchronisation au chargement de l'écran
-        document.addEventListener("DOMContentLoaded", chargerDetailsTransaction);
+        // Init au chargement
+        document.addEventListener("DOMContentLoaded", () => {
+            chargerDetailsCommande();
+            // Polling automatique pour voir si l'acheteur valide de son côté
+            setInterval(chargerDetailsCommande, 5000);
+        });
     </script>
 </body>
-    </html>
-                    
+                    </html>
+                                                                                                                         
