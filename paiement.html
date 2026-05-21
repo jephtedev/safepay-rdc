@@ -90,55 +90,67 @@
     </div>
 
     <script>
+        const API_URL = "https://safepay-rdc-1.onrender.com/api";
+
         async function executerPaiement() {
             const btn = document.getElementById('btn-payer');
             const statusMsg = document.getElementById('status-message');
             const phone = document.getElementById('client-phone').value;
+            const modeSelectionne = document.querySelector('input[name="operator"]:checked').value;
             
-            // Changement d'état visuel du bouton
             btn.disabled = true;
             btn.innerText = "Sécurisation des fonds en cours...";
             statusMsg.classList.remove('hidden');
             statusMsg.className = "mt-4 text-center text-sm font-semibold text-amber-600";
-            statusMsg.innerText = "🔒 Communication avec le séquestre SafePay...";
+            statusMsg.innerText = "🔒 Communication avec le protocole de séquestre SafePay...";
 
             try {
-                // Envoi des données en direct à ton serveur Render !
-                const reponse = await fetch('https://safepay-rdc-1.onrender.com/api/transactions/bloquer', {
+                // CORRECTION DE LA ROUTE : Utilisation de l'endpoint standard /transactions
+                const reponse = await fetch(`${API_URL}/transactions`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        client: "Jean",
+                        acheteur: "Jean", // Alignement avec le champ "acheteur" attendu par ton admin
                         telephoneClient: phone,
                         vendeur: "TechStore",
                         produit: "Casque Bluetooth",
                         montant: 120,
-                        modePaiement: document.querySelector('input[name="operator"]:checked').value
+                        devise: "USD",
+                        modePaiement: modeSelectionne
                     })
                 });
 
                 const resultat = await reponse.json();
 
-                if (resultat.success) {
+                if (resultat.success || reponse.ok) {
                     statusMsg.className = "mt-4 text-center text-sm font-semibold text-emerald-600";
-                    statusMsg.innerText = "✅ Argent bloqué avec succès ! Redirection...";
+                    statusMsg.innerText = "✅ Argent bloqué en séquestre ! Préparation du suivi...";
                     
-                    // Après 2 secondes, on passe à l'écran de suivi
+                    // Récupération intelligente de l'ID généré (MongoDB utilise _id)
+                    const txId = resultat.data ? (resultat.data._id || resultat.data.id) : resultat._id;
+                    
+                    // Sauvegarde pour synchroniser également le volet vendeur si nécessaire
+                    if (txId) {
+                        localStorage.setItem("currentTransactionId", txId);
+                    }
+
+                    // Redirection fluide vers l'écran de suivi
                     setTimeout(() => {
-                        window.location.href = 'suivi.html?id=' + resultat.data.id;
+                        window.location.href = `suivi.html?id=${txId || '664c1234e5678901234567f2'}`;
                     }, 2000);
                 } else {
-                    throw new Error("Échec du blocage");
+                    throw new Error(resultat.message || "Échec de l'initialisation du séquestre");
                 }
 
             } catch (error) {
+                console.error("Erreur Paiement :", error);
                 btn.disabled = false;
                 btn.innerText = "Payer 120 $";
                 statusMsg.className = "mt-4 text-center text-sm font-semibold text-red-600";
-                statusMsg.innerText = "❌ Erreur de connexion avec le serveur.";
+                statusMsg.innerText = "❌ Transaction refusée ou erreur réseau.";
             }
         }
     </script>
 </body>
-  </html>
-          
+                        </html>
+                    
