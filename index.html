@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePay RDC - Application Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        safepayPurple: '#4F46E5',
+                        safepayDark: '#1E1B4B',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen font-sans">
+
+    <div class="w-full max-w-md bg-white min-h-[840px] shadow-2xl rounded-[40px] overflow-hidden border-[8px] border-slate-800 flex flex-col relative">
+        
+        <div class="px-6 pt-3 pb-2 flex justify-between items-center text-xs font-bold text-slate-700 bg-white">
+            <span>14:35</span>
+            <div class="flex gap-1 items-center">
+                <span>📶</span>
+                <span>🔋</span>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 flex justify-between items-center bg-white">
+            <button class="text-xl text-slate-800 font-bold">←</button>
+            <div class="relative">
+                <span class="text-xl">🔔</span>
+                <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </div>
+        </div>
+
+        <div class="px-6 flex-1 overflow-y-auto pb-24">
+            <div class="mt-2">
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Bonjour, Jean 🧑🏽‍💻</h1>
+                <p class="text-sm text-slate-500 mt-1">Que souhaitez-vous faire ?</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100 transition-all">
+                    <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-xl text-safepayPurple">🛒</div>
+                    <p class="mt-4 font-bold text-sm text-slate-800">Nouvelle<br>commande</p>
+                </div>
+                <div class="bg-safepayPurple p-4 rounded-2xl shadow-lg shadow-indigo-200 cursor-pointer">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl text-white">📋</div>
+                    <p class="mt-4 font-bold text-sm text-white">Mes<br>commandes</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-8 mb-4">
+                <h2 class="font-extrabold text-slate-900 text-base">Mes commandes récentes</h2>
+                <a href="#" class="text-sm font-bold text-safepayPurple">Voir tout</a>
+            </div>
+
+            <div id="loading-status" class="text-center py-4 text-sm text-slate-400">Connexion sécurisée à SafePay RDC...</div>
+            
+            <div id="container-commandes" class="hidden space-y-4">
+                </div>
+        </div>
+
+        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-center text-center">
+            <div class="flex flex-col items-center text-safepayPurple cursor-pointer">
+                <span class="text-xl">🏠</span>
+                <span class="text-[10px] font-bold mt-1">Accueil</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">🛍️</span>
+                <span class="text-[10px] font-medium mt-1">Commandes</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">💼</span>
+                <span class="text-[10px] font-medium mt-1">Wallet</span>
+            </div>
+            <div class="flex flex-col items-center text-slate-400 cursor-pointer hover:text-slate-600">
+                <span class="text-xl">👤</span>
+                <span class="text-[10px] font-medium mt-1">Profil</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = "https://safepay-rdc-1.onrender.com/api/transactions";
+
+        async function chargerTransactions() {
+            try {
+                const reponse = await fetch(API_URL);
+                const resultat = await reponse.json();
+                
+                if (resultat.success && resultat.data.length > 0) {
+                    const commande = resultat.data[0]; // On prend la première transaction (#TRX1258)
+                    
+                    // Masquer le texte de chargement
+                    document.getElementById('loading-status').classList.add('hidden');
+                    
+                    // Injecter la carte magnifique avec les vraies infos
+                    const container = document.getElementById('container-commandes');
+                    container.classList.remove('hidden');
+                    container.innerHTML = `
+                        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm hover:shadow-md transition-all">
+                            <div class="w-14 h-14 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-2xl">
+                                🎧
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-slate-800 text-sm">${commande.produit}</h3>
+                                    <span class="font-black text-slate-900 text-sm">${commande.montant} ${commande.devise}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5">Vendeur : ${commande.vendeur}</p>
+                                <div class="mt-3 flex justify-between items-center">
+                                    <span class="inline-block bg-amber-50 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-100">
+                                        ● En attente de livraison
+                                    </span>
+                                    <span class="text-[10px] font-mono text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                                        ${commande.numeroCommande}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-100 rounded-2xl p-4 flex items-center shadow-sm opacity-60">
+                            <div class="w-14 h-14 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-2xl">
+                                ⌚
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-slate-800 text-sm">Montre Connectée</h3>
+                                    <span class="font-black text-slate-900 text-sm">85 $</span>
+                                </div>
+                                <p class="text-xs text-slate-400 mt-0.5">Vendeur : TimeShop</p>
+                                <div class="mt-3">
+                                    <span class="inline-block bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-100">
+                                        ● Livraison confirmée
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (erreur) {
+                console.error("Erreur de connexion à l'API Render:", erreur);
+                document.getElementById('loading-status').innerText = "Erreur de chargement des données.";
+            }
+        }
+
+        // Lancer le chargement automatique au démarrage de la page
+        chargerTransactions();
+    </script>
+</body>
+      </html>
+      
