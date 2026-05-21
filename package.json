@@ -1,16 +1,29 @@
 {
   "name": "safepay-rdc",
   "version": "1.0.0",
-  "description": "Plateforme de paiement sécurisée avec validation de livraison pour le e-commerce en RDC.",
+  "description": "Plateforme de paiement sécurisé avec validation de livraison pour le e-commerce en RDC.",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
+  "keywords": [
+    "safepay",
+    "rdc",
+    "fintech",
+    "escrow",
+    "ecommerce",
+    "kinshasa"
+  ],
+  "author": "Cedrick Tshiyobo & Jephté MANWANA",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "mongoose": "^8.3.4"
   },
-  "license": "MIT"
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
 }
-
